@@ -21,6 +21,8 @@ Mutators take a reference to a list as first arg.
 */
 
 #include "word_count.h"
+#include <stdlib.h>
+#include <string.h>
 
 /* Basic utilities */
 
@@ -37,6 +39,10 @@ int init_words(WordCount **wclist) {
      Returns 0 if no errors are encountered
      in the body of this function; 1 otherwise.
   */
+  if (wclist == NULL) {
+    return 1;
+  }
+
   *wclist = NULL;
   return 0;
 }
@@ -46,13 +52,22 @@ ssize_t len_words(WordCount *wchead) {
      encountered in the body of
      this function.
   */
-    size_t len = 0;
-    return len;
+  if (wchead == NULL) {
+    return -1;
+  }
+
+  size_t len = 0;
+  for (WordCount *curr = wchead; curr != NULL; curr = curr->next) {
+    len++;
+  }
+
+  return len;
 }
 
 WordCount *find_word(WordCount *wchead, char *word) {
   /* Return count for word, if it exists */
   WordCount *wc = NULL;
+  for (wc = wchead; wc != NULL && strcmp(wc->word, word) != 0; wc = wc->next);
   return wc;
 }
 
@@ -61,7 +76,26 @@ int add_word(WordCount **wclist, char *word) {
      Otherwise insert with count 1.
      Returns 0 if no errors are encountered in the body of this function; 1 otherwise.
   */
- return 0;
+  if (wclist == NULL) {
+    return 1;
+  }
+
+  for (WordCount *curr = *wclist; curr != NULL; curr = curr->next) {
+    if (strcmp(curr->word, word) == 0) {
+      curr->count++;
+      return 0;
+    }
+  }
+
+  WordCount *new_node = malloc(sizeof(WordCount));
+
+  new_node->word = new_string(word);
+  new_node->count = 1;
+  new_node->next = *wclist;
+
+  *wclist = new_node;
+
+  return 0;
 }
 
 void fprint_words(WordCount *wchead, FILE *ofile) {
